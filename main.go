@@ -1,4 +1,4 @@
-package k8sproject1
+package github.com/MichaelGit-beep/k8sproject1
 
 import "fmt"
 
