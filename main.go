@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -34,22 +33,15 @@ func main() {
 
 	clientset := kubernetes.NewForConfigOrDie(config)
 
-	pods, err := clientset.CoreV1().Pods("kube-system").List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Println(err)
 	}
 	for {
-		for _, pod := range pods.Items {
-			fmt.Println(pod.Name)
-		}
-
-		deployments, err := clientset.AppsV1().Deployments("").List(context.Background(), metav1.ListOptions{})
+		events, err := clientset.CoreV1().Pods("default").Watch(context.Background(), metav1.ListOptions{})
 		if err != nil {
-			log.Println(err)
+			log.Println("Failed to list pods: ", err)
 		}
-		for _, deploment := range deployments.Items {
-			fmt.Printf("Deployment %s, Namespace: %s\n", deploment.Name, deploment.Namespace)
-		}
-		time.Sleep(10 * time.Second)
+		event := <-events.ResultChan()
+		fmt.Println(event.Object.GetObjectKind().GroupVersionKind())
 	}
 }
